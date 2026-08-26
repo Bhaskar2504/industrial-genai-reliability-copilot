@@ -1,65 +1,58 @@
 # Industrial GenAI Reliability Copilot
 
-A production-informed GenAI application demonstrating how industrial reliability and Asset Performance Management expertise can be translated into evidence-grounded engineering workflows using structured prompting, Retrieval-Augmented Generation, engineering tool calling, automated evaluation, guardrails, citations, observability and human-review controls.
+A production-informed GenAI application demonstrating how industrial reliability and Asset Performance Management expertise can be translated into evidence-grounded engineering workflows using structured prompting, automated evaluation, guardrails, citations, traceability and human-review controls.
 
-> **Current release target: v0.1 — Structured Prompting.** The repository is intentionally being built in genuine capability stages. Features planned for later releases are clearly marked and are not presented as already complete.
+> **Current capability: v0.2 — Evaluation Baseline.** v0.1 established structured prompting and output contracts. v0.2 adds a reproducible synthetic evaluation dataset, scoring harness, repeated-run checks, and a public report that deliberately includes a failing case.
 
-## Why this project exists
+## 1. The industrial reliability problem
 
-Industrial troubleshooting is not a generic question-answering problem. Engineers need answers that distinguish observations from hypotheses, show the evidence behind each claim, respect equipment operating context, expose uncertainty, and escalate when the evidence is insufficient.
+Industrial troubleshooting is not a generic question-answering problem. Engineers need answers that distinguish observations from hypotheses, show the evidence behind each claim, respect equipment operating context, expose uncertainty, and escalate when evidence is insufficient.
 
-This project is designed to demonstrate how those requirements can be built into a GenAI workflow rather than added as an afterthought.
+A useful reliability copilot therefore needs more than an LLM call. It needs explicit engineering contracts, evidence handling, testable behavior and clear limits on what the system is allowed to claim.
 
-## v0.1 scope
+## 2. Intended users and use cases
 
-The initial baseline focuses on:
+**Intended users**
 
-- versioned diagnostic prompts;
-- structured engineering output contracts;
-- synthetic evidence records;
-- deterministic mock execution for repeatable tests;
-- optional LLM adapter behind the same contract;
-- input and output validation;
-- unsupported-citation detection;
-- insufficient-evidence abstention;
-- human-escalation logic;
-- lightweight trace records;
-- contract and guardrail tests.
-
-RAG, engineering tool calling, full evaluation benchmarking, production observability and an integrated demonstration are planned for later releases.
-
-## Intended users
-
-- reliability engineers;
-- maintenance and condition-monitoring engineers;
+- reliability and maintenance engineers;
+- condition-monitoring engineers;
 - plant performance engineers;
 - Industrial AI / APM practitioners;
-- technical consultants translating engineering workflows into AI systems.
+- technical consultants translating engineering requirements into AI workflows.
 
-## What the system does
+**Example use cases**
 
-Given an engineering question and a set of evidence records, the diagnostic workflow produces a structured response containing:
+- structure an initial diagnostic assessment from observed symptoms;
+- compare plausible failure mechanisms rather than jump to one root cause;
+- connect hypotheses to explicit evidence IDs;
+- identify missing checks before a maintenance decision;
+- abstain or escalate when evidence is insufficient or the request is safety-sensitive.
 
-1. problem framing;
-2. observations supported by evidence;
-3. plausible failure-mode hypotheses;
-4. evidence supporting or contradicting each hypothesis;
-5. confidence and uncertainty;
-6. recommended engineering checks;
-7. cited evidence identifiers;
-8. abstention or escalation status when appropriate.
+## 3. What the system does — and does not do
 
-## What it does not do
+### It does
 
-The application does **not**:
+- use a versioned diagnostic prompt;
+- return a structured diagnostic record;
+- separate hypotheses from confirmed facts;
+- require traceable evidence identifiers;
+- validate output structure and evidence references;
+- abstain when no evidence is available;
+- route safety-sensitive requests to qualified human review;
+- support deterministic mock execution for reproducible testing;
+- optionally use an LLM provider behind the same validation layer;
+- publish successful **and failed** evaluation cases.
+
+### It does not
 
 - replace qualified engineering judgement;
-- bypass plant safety procedures, OEM requirements or maintenance procedures;
-- claim a root cause when evidence is insufficient;
+- bypass plant procedures, OEM requirements, interlocks or protection systems;
 - provide autonomous control actions;
-- use employer, customer or proprietary plant information.
+- claim a root cause solely because a model produced a plausible explanation;
+- use employer, customer or proprietary plant information;
+- claim real-world diagnostic accuracy from synthetic tests.
 
-## Architecture
+## 4. Architecture and data flow
 
 ```text
 Engineering question
@@ -68,19 +61,19 @@ Engineering question
 Input validation
         |
         v
-Prompt registry + version
+Asset context + evidence records
         |
         v
-Evidence records ---------> evidence provenance
+Versioned diagnostic prompt
         |
         v
-LLM / deterministic mock
+LLM adapter / deterministic mock
         |
         v
 Structured JSON response
         |
         v
-Schema + citation validation
+Schema + evidence validation
         |
         +---- insufficient / unsafe ----> human escalation
         |
@@ -88,159 +81,204 @@ Schema + citation validation
 Trace record + engineering response
 ```
 
-See [`docs/architecture.md`](docs/architecture.md) for the architecture and planned evolution.
+See [`docs/architecture.md`](docs/architecture.md).
 
-## Diagnostic workflow
+## 5. Diagnostic workflow
 
-The core reasoning pattern is deliberately engineering-led:
+The reasoning pattern is deliberately engineering-led:
 
 **Context → Observations → Relationships → Plausible mechanisms → Contradicting evidence → Confidence → Next checks → Escalation if needed**
 
-The prompt explicitly separates an anomaly from a confirmed failure mode. A statistically unusual condition is treated as evidence, not automatically as a diagnosis.
+The prompt explicitly treats an anomaly as evidence, not automatically as a confirmed failure mode.
 
-## Structured outputs
+The structured response includes:
 
-The main contract is defined in [`schemas/diagnostic_output.json`](schemas/diagnostic_output.json). Supporting evidence and escalation schemas live in the same directory.
+- problem summary;
+- asset context;
+- diagnostic hypotheses;
+- supporting and contradicting evidence IDs;
+- confidence;
+- recommended checks;
+- safety notes;
+- abstention state;
+- escalation record;
+- prompt/schema version information.
 
-Structured output is important because it makes the application testable. Claims, citations, confidence, escalation state and recommended checks can be validated independently instead of judging only whether prose sounds convincing.
+## 6. RAG and citation approach
 
-## RAG and citations
+**Status: RAG is planned for v0.3 and is not yet implemented.**
 
-**Status in v0.1: interface prepared; retrieval implementation planned for v0.3.**
+v0.2 still receives evidence records explicitly. This is intentional: prompt behavior, output contracts, evaluation and safety controls are being tested before retrieval is introduced.
 
-The intended RAG design will retrieve only from synthetic or clearly licensed public engineering material. Retrieved chunks will carry stable evidence IDs and provenance metadata. Diagnostic claims will be allowed to cite only evidence IDs supplied to the generation step.
+The v0.3 design will:
 
-The v0.1 baseline already validates that returned citations exist in the supplied evidence set, which establishes the contract needed before retrieval is added.
+- ingest only synthetic or clearly licensed public sources;
+- preserve source provenance and stable evidence IDs;
+- retrieve candidate evidence independently of generation;
+- validate that cited evidence exists in the retrieved set;
+- measure retrieval precision separately from answer quality.
 
-## Engineering tools
+See [`knowledge/sources.md`](knowledge/sources.md).
 
-**Status in v0.1: planned interfaces only; implementation planned for v0.4.**
+## 7. Structured outputs and engineering tools
 
-Planned deterministic tools include:
+The machine-readable contracts are defined in:
 
-- trend analysis;
-- alarm/event-window analysis;
-- failure-mode lookup.
+- [`schemas/diagnostic_output.json`](schemas/diagnostic_output.json)
+- [`schemas/evidence_record.json`](schemas/evidence_record.json)
+- [`schemas/escalation_record.json`](schemas/escalation_record.json)
 
-The design principle is that arithmetic, lookup and deterministic engineering logic should be executed by tools where possible rather than improvised by a language model.
+Pydantic models provide the runtime validation layer.
 
-## Evaluation
+**Engineering tool calling is planned for v0.4.** Reserved modules exist for trend analysis, alarm/event analysis and failure-mode lookup, but they are not presented as implemented capability yet.
 
-Evaluation is treated as part of the product, not a final demo step.
+## 8. Evaluation methodology and current results
 
-Planned measurable dimensions include:
+Evaluation is treated as part of the application, not as a final demo step.
 
-- diagnostic relevance;
-- evidence citation accuracy;
+v0.2 introduces an 8-case deterministic synthetic baseline covering:
+
+- diagnostic relevance / failure-mode coverage;
+- evidence citation-ID accuracy;
 - structured-output validity;
-- unsupported-claim rate;
-- retrieval precision;
-- failure-mode coverage;
-- abstention when evidence is insufficient;
+- unsupported-claim structural proxy;
+- abstention behavior;
 - repeated-run consistency;
-- tool-call correctness;
-- human-escalation accuracy.
+- safety-sensitive human escalation;
+- an adversarial evidence-text case;
+- a deliberately conflicting-evidence case.
 
-v0.1 contains contract-level tests and synthetic test cases. A quantitative evaluation baseline is the goal of v0.2. Successful and failed test cases will both be retained.
+### Current v0.2 baseline
 
-See [`docs/evaluation.md`](docs/evaluation.md).
+| Metric | Result |
+|---|---:|
+| Cases | 8 |
+| Passed | 7 |
+| Failed | 1 |
+| Case pass rate | **87.5%** |
+| Structured-output validity | **100%** |
+| Evidence citation-ID accuracy | **100%** |
+| Required citation coverage | **100%** |
+| Unsupported-claim rate — structural proxy | **0%** |
+| Failure-mode coverage | **100%** |
+| Abstention accuracy | **87.5%** |
+| Repeated-run consistency | **100%** |
+| Human-escalation accuracy | **87.5%** |
+| Retrieval precision | N/A until v0.3 |
+| Tool-call correctness | N/A until v0.4 |
 
-## Guardrails and human review
+The failed case is intentionally public: conflicting pump-restriction and sensor-quality evidence should cause more uncertainty, but the current deterministic baseline prioritizes the pump keyword and does not abstain. That limitation is documented rather than hidden.
 
-The system is designed to fail safely when possible. Examples include:
+The unsupported-claim metric is currently only a **structural proxy**. It checks whether hypotheses carry supplied evidence IDs; it does not yet prove semantic entailment between each claim and cited passage.
 
-- rejecting empty or malformed requests;
-- requiring traceable evidence identifiers;
-- checking output schema validity;
-- detecting citations that were never provided to the model;
-- escalating safety-critical or insufficient-evidence situations;
-- preventing a generated answer from being represented as an autonomous maintenance instruction.
+See [`evaluation/reports/v0.2-baseline.md`](evaluation/reports/v0.2-baseline.md), [`evaluation/datasets/v0.2_baseline.json`](evaluation/datasets/v0.2_baseline.json) and [`docs/evaluation.md`](docs/evaluation.md).
+
+## 9. Guardrails and human-review requirements
+
+Current controls include:
+
+- request validation;
+- safety-sensitive phrase detection;
+- structured-output validation;
+- rejection of unknown evidence IDs;
+- abstention when evidence is absent;
+- fallback escalation when model output cannot be validated;
+- urgent human review for requests involving protection/interlock bypass behavior;
+- trace metadata without logging full engineering evidence text.
+
+A qualified engineer remains responsible for material operating or maintenance decisions.
 
 See [`docs/safety-and-limitations.md`](docs/safety-and-limitations.md) and [`docs/threat-model.md`](docs/threat-model.md).
 
-## Quick start
+## 10. Installation and demonstration
 
-### 1. Create a virtual environment
+### Requirements
+
+- Python 3.11+
+- no API key required for the deterministic mock path
+
+### Install
 
 ```bash
+git clone https://github.com/Bhaskar2504/industrial-genai-reliability-copilot.git
+cd industrial-genai-reliability-copilot
 python -m venv .venv
 source .venv/bin/activate       # Linux/macOS
-# .venv\Scripts\activate       # Windows
-```
-
-### 2. Install
-
-```bash
+# .venv\Scripts\activate      # Windows
 pip install -r requirements.txt
-```
-
-### 3. Configure
-
-```bash
 cp .env.example .env
 ```
 
-The deterministic mock mode does not require an API key.
-
-### 4. Run tests
+### Run tests
 
 ```bash
-pytest
+pytest -q
 ```
 
-### 5. Run the v0.1 example
+### Run the diagnostic demonstration
 
 ```bash
 python -m examples.demo_v01
 ```
 
-### 6. Run the API
+### Run the v0.2 evaluation baseline
+
+```bash
+python evaluation/run_baseline.py
+```
+
+This regenerates the human-readable report and a local machine-readable result file.
+
+### Run the API
 
 ```bash
 uvicorn app.api.main:app --reload
 ```
 
-Open `/docs` on the local FastAPI server for the interactive API schema.
+Then open the local FastAPI `/docs` endpoint.
 
-## Repository map
+### Optional OpenAI backend
 
-```text
-app/             API, orchestration, configuration and optional UI
-prompts/         versioned prompt assets
-schemas/         machine-validatable engineering contracts
-knowledge/       synthetic and future public-source material
-rag/             ingestion, retrieval and citation components
- tools/           deterministic engineering tool interfaces
- evaluation/      datasets, metrics, cases and reports
- guardrails/      input, output and escalation controls
- observability/   trace model and later instrumentation
- tests/           automated tests
- docs/            architecture, evaluation, safety and decisions
- examples/        runnable demonstrations
- screenshots/     future demonstration media
-```
+The default backend is deterministic `mock`. An optional adapter uses the OpenAI Responses API. Configure it through `.env`; model output still passes through the same application-level validation and escalation controls.
+
+## 11. Screenshots or short demonstration
+
+Demonstration media will be added only after the UI/API workflow is stable. Guidance is kept in [`screenshots/README.md`](screenshots/README.md).
+
+## 12. Limitations and planned improvements
+
+Current limitations include:
+
+- synthetic rather than field data;
+- deterministic heuristic mock behavior is not a real diagnostic model;
+- contradiction-aware reasoning is weak and is exposed by the failed v0.2 case;
+- semantic claim-support evaluation is not yet implemented;
+- retrieval is not implemented yet;
+- engineering tools are not implemented yet;
+- confidence values are not calibrated probabilities;
+- production authentication, persistent tracing and RBAC are outside the current scope.
+
+## 13. Data provenance and confidentiality
+
+This is an independent personal project. It is not affiliated with, sponsored by, or endorsed by any employer, customer, plant operator or software vendor.
+
+Only synthetic, generated, or clearly licensed public engineering information may be committed. Employer/customer documents, plant tag data, alert histories, internal FDS/SOP material, proprietary failure-mode libraries, credentials, customer names and identifiable operational information are prohibited.
+
+See [`knowledge/sources.md`](knowledge/sources.md), [`SECURITY.md`](SECURITY.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Release evolution
 
 | Release | Capability | Status |
 |---|---|---|
-| **v0.1** | Structured Prompting | **current** |
-| v0.2 | Evaluation Baseline | planned |
+| v0.1 | Structured Prompting | implemented |
+| **v0.2** | Evaluation Baseline | **current** |
 | v0.3 | RAG and Citations | planned |
 | v0.4 | Engineering Tool Calling | planned |
 | v0.5 | Guardrails and Human Escalation | planned |
 | v0.6 | Observability and Traceability | planned |
 | v1.0 | Integrated Demonstration | planned |
 
-Releases will be created only when the corresponding capability is implemented and reproducible. The Git history will reflect actual development work rather than artificial milestone commits.
-
-## Data provenance and confidentiality
-
-This is an independent personal project. It is not affiliated with, sponsored by, or endorsed by any employer, customer, plant operator or software vendor.
-
-Only synthetic, generated, or clearly licensed public engineering information may be committed. The repository must not contain employer/customer documents, plant tag data, alert histories, functional-design documents, internal SOPs, source code, proprietary failure-mode libraries, credentials, customer names or identifiable operational information.
-
-See [`knowledge/sources.md`](knowledge/sources.md), [`SECURITY.md`](SECURITY.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md).
+The Git history is intended to reflect real capability changes. Later versions will be marked only after the corresponding capability is implemented and reproducible.
 
 ## Safety statement
 
@@ -248,4 +286,4 @@ This application supports engineering analysis. It does not replace qualified en
 
 ## License
 
-See [`LICENSE`](LICENSE).
+MIT — see [`LICENSE`](LICENSE).
