@@ -50,3 +50,24 @@ class DiagnosticRequest(BaseModel):
     question: str = Field(min_length=3, max_length=6000)
     asset_context: AssetContext
     evidence: list[EvidenceRecord] = Field(default_factory=list)
+
+
+class RAGDiagnosticRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=6000)
+    asset_context: AssetContext
+    top_k: int = Field(default=3, ge=1, le=8)
+
+
+class RetrievalRequest(BaseModel):
+    query: str = Field(min_length=3, max_length=6000)
+    top_k: int = Field(default=3, ge=1, le=8)
+
+
+class RetrievalHitModel(BaseModel):
+    evidence: EvidenceRecord
+    score: float = Field(ge=0.0, le=1.0)
+
+
+class RetrievalResponse(BaseModel):
+    query: str
+    hits: list[RetrievalHitModel]

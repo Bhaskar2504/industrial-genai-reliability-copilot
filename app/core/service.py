@@ -5,18 +5,39 @@ from pydantic import ValidationError
 
 from app.core.config import Settings, get_settings
 from app.core.llm import LLMClient, build_llm_client
-from app.core.models import DiagnosticOutput, DiagnosticRequest
+from app.core.models import DiagnosticOutput, DiagnosticRequest, RAGDiagnosticRequest, RetrievalHitModel
 from app.core.prompt_registry import PROMPT_VERSION, load_prompt_template, load_schema_text
 from guardrails.human_escalation.policy import invalid_output_fallback
 from guardrails.input_validation.validator import assess_input
 from guardrails.output_validation.validator import OutputValidationError, validate_grounding_rules
 from observability.tracing import trace
+from rag.pipeline import RAGPipeline
 
 
 class DiagnosticService:
-    def __init__(self, settings: Settings | None = None, llm: LLMClient | None = None):
+    def __init__(self, settings: Settings | None = None, llm: LLMClient | None = None, rag: RAGPipeline | None = None):
         self.settings = settings or get_settings()
         self.llm = llm or build_llm_client(self.settings)
+        self.rag = rag or RAGPipeline()
+
+    def retrieve(self, query: str, top_k: int = 3) -> list[RetrievalHitModel]:
+        return self.rag.retrieve(query, top_k=top_k)
+
+    def diagnose_with_retrieval(self, request: RAGDiagnosticRequest) -> DiagnosticOutput:
+        hits = self.retrieve(request.question, request.top_k)
+        evidence = [hit.evidence for hit in hits]
+        trace(
+            "retrieval_completed",
+            "pre-diagnostic",
+            {"top_k": request.top_k, "retrieved": len(evidence), "evidence_ids": [e.evidence_id for e in evidence]},
+            self.settings.trace_to_stdout,
+        )
+        grounded_request = DiagnosticRequest(
+            question=request.question,
+            asset_context=request.asset_context,
+            evidence=evidence,
+        )
+        return self.diagnose(grounded_request)
 
     def diagnose(self, request: DiagnosticRequest) -> DiagnosticOutput:
         request_id = str(uuid4())
@@ -47,6 +68,7 @@ class DiagnosticService:
         schema = load_schema_text()
         context = {
             "request_id": request_id,
+            "prompt_version": PROMPT_VERSION,
             "question": request.question,
             "asset_context": request.asset_context.model_dump(),
             "evidence": [e.model_dump() for e in request.evidence],

@@ -11,10 +11,9 @@ class LLMClient(ABC):
 
 
 class MockLLMClient(LLMClient):
-    """Deterministic v0.1 backend for reproducible tests and demos."""
+    """Deterministic backend for reproducible tests and demos."""
 
     def generate(self, prompt: str) -> str:
-        # The service injects a machine-readable block after MOCK_CONTEXT_JSON.
         marker = "MOCK_CONTEXT_JSON:"
         payload = json.loads(prompt.split(marker, 1)[1].strip()) if marker in prompt else {}
         evidence = payload.get("evidence", [])
@@ -26,7 +25,7 @@ class MockLLMClient(LLMClient):
         if not evidence:
             result = {
                 "schema_version": "1.0",
-                "prompt_version": "diagnostic-v0.1",
+                "prompt_version": payload.get("prompt_version", "diagnostic-v0.3"),
                 "request_id": request_id,
                 "problem_summary": "Evidence is insufficient for a grounded diagnostic assessment.",
                 "asset_context": asset_context,
@@ -45,7 +44,7 @@ class MockLLMClient(LLMClient):
             }
             return json.dumps(result)
 
-        text = " ".join(e.get("excerpt", "").lower() for e in evidence)
+        text = evidence[0].get("excerpt", "").lower()
         if "strainer" in text or "suction restriction" in text:
             mode = "Possible suction-side restriction"
             rationale = "The supplied synthetic evidence links increasing suction-side restriction with reduced pump suction conditions and degraded delivered flow or discharge performance."
@@ -58,7 +57,7 @@ class MockLLMClient(LLMClient):
 
         result = {
             "schema_version": "1.0",
-            "prompt_version": "diagnostic-v0.1",
+            "prompt_version": payload.get("prompt_version", "diagnostic-v0.3"),
             "request_id": request_id,
             "problem_summary": payload.get("question", "Engineering troubleshooting request."),
             "asset_context": asset_context,
