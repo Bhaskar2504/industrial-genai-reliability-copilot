@@ -15,3 +15,4 @@ local_data/
 
 # Generated evaluation outputs
 evaluation/reports/v0.2_results.json
+evaluation/reports/v0.3_results.json

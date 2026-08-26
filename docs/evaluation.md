@@ -2,52 +2,50 @@
 
 Evaluation is treated as part of the product, not as a final demo step.
 
-## v0.2 baseline
+## v0.2 workflow baseline
 
-The first quantitative baseline uses eight synthetic cases and the deterministic mock backend so the result is reproducible without an API key. It deliberately includes a failing contradictory-evidence case.
+Eight synthetic cases exercise structured outputs, evidence-ID grounding, abstention, safety escalation and repeatability. Seven pass and one contradictory-evidence case is deliberately retained as a failure.
 
-Current baseline result:
+See [`../evaluation/reports/v0.2-baseline.md`](../evaluation/reports/v0.2-baseline.md).
 
-- 8 cases total;
-- 7 passed;
-- 1 failed;
-- 87.5% case pass rate;
-- 100% structured-output validity;
-- 100% evidence citation-ID accuracy;
-- 100% repeated-run consistency;
-- 87.5% abstention accuracy;
-- 87.5% human-escalation accuracy.
+## v0.3 RAG and citation baseline
 
-These are workflow-level synthetic metrics, not real-world diagnostic accuracy. The unsupported-claim metric is currently a structural proxy: it verifies that diagnostic hypotheses carry supplied evidence IDs, not that every cited passage semantically proves the claim.
+Seven targeted retrieval cases exercise the synthetic knowledge base and deterministic lexical retriever.
 
-See [`../evaluation/reports/v0.2-baseline.md`](../evaluation/reports/v0.2-baseline.md). Running the evaluator also creates a local machine-readable `evaluation/reports/v0.2_results.json`; that generated file is intentionally ignored to avoid noisy request-level artifacts in Git history.
+Current result:
+
+- 7 cases total;
+- 6 passed;
+- 1 deliberately retained ambiguous-query failure;
+- 85.7% retrieval precision@1;
+- 100% citation-ID accuracy;
+- 100% source-locator completeness;
+- 100% repeated retrieval consistency.
+
+See [`../evaluation/reports/v0.3-rag-and-citations.md`](../evaluation/reports/v0.3-rag-and-citations.md).
+
+These are portfolio-scale synthetic metrics, not real-world diagnostic accuracy.
 
 ## Evaluation layers
 
 ### 1. Contract evaluation
-
 Can the system produce valid, parseable, versioned engineering records?
 
 ### 2. Grounding evaluation
-
-Do evidence citations exist, and do they support the associated claim? v0.2 validates citation IDs structurally; semantic support evaluation is still planned.
+Do evidence citations exist and come from the supplied/retrieved evidence set? Semantic entailment scoring remains a future improvement.
 
 ### 3. Diagnostic evaluation
-
-Does the answer include relevant plausible mechanisms, useful contradicting evidence, and appropriate checks?
+Does the answer include plausible mechanisms, contradicting evidence and useful next checks without presenting hypotheses as confirmed root cause?
 
 ### 4. Retrieval evaluation
-
-From v0.3, did retrieval return the right evidence before generation even started?
+Did retrieval rank the intended engineering source before generation began?
 
 ### 5. Tool evaluation
-
-From v0.4, did the system choose and call deterministic tools correctly?
+From v0.4, did the system choose and call deterministic engineering tools correctly?
 
 ### 6. Safety and escalation evaluation
-
-Did the system abstain and escalate when the evidence or risk profile required it?
+Did the system abstain and escalate when evidence or risk required it?
 
 ## Why failed cases stay public
 
-Failed examples are retained with an explanation of whether the failure came from retrieval, prompt behavior, schema compliance, tool choice, contradiction handling, or policy/escalation logic. A visible limitation is more useful than an artificially perfect benchmark.
+Failed examples are retained with an explanation of whether the failure came from retrieval, prompt behaviour, schema compliance, tool choice, contradiction handling or escalation logic. A visible limitation is more informative than an artificially perfect benchmark.

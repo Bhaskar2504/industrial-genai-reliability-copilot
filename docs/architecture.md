@@ -3,25 +3,60 @@
 ## Design principles
 
 1. **Evidence is a first-class object.** Evidence IDs and provenance exist independently of generated prose.
-2. **Generation is not validation.** Model output is parsed and validated by application code.
-3. **Prompts and schemas are versioned independently.** A behavioral change can therefore be traced to the prompt, schema, model, retrieval, or tool layer.
-4. **The model proposes; the engineer decides.** Root-cause confirmation remains outside the LLM.
-5. **Failure should become abstention, not fabricated certainty.** Invalid output is converted into a structured human-review record.
+2. **Retrieval is inspectable.** The evidence selected before generation can be examined through `/retrieve`.
+3. **Generation is not validation.** Model output is parsed and validated by application code.
+4. **Prompts, schemas, retrieval and tools evolve independently.** Behavioural changes can be traced to the layer that changed.
+5. **The model proposes; the engineer decides.** Root-cause confirmation remains outside the LLM.
+6. **Failure should become abstention or escalation, not fabricated certainty.**
 
-## v0.1 components
+## v0.3 components
 
-- FastAPI interface;
-- diagnostic service;
-- versioned prompt registry;
-- deterministic mock LLM adapter;
-- optional OpenAI Responses API adapter;
-- Pydantic contracts;
-- evidence-reference validation;
-- safety-sensitive input detection;
-- trace events to stdout;
-- synthetic engineering knowledge examples;
-- automated contract tests.
+```text
+Question
+  |
+  +--> input validation
+  |
+  +--> markdown knowledge loader
+          |
+          +--> stable chunk ID
+          +--> source title/type
+          +--> source locator
+  |
+  +--> deterministic lexical retriever
+          |
+          +--> ranked evidence chunks
+  |
+  +--> versioned diagnostic prompt
+  |
+  +--> mock / optional provider adapter
+  |
+  +--> Pydantic diagnostic contract
+  |
+  +--> evidence-ID grounding validation
+  |
+  +--> abstention / safety escalation
+  |
+  +--> trace event
+```
+
+## Why deterministic retrieval first
+
+v0.3 deliberately uses a small TF-IDF cosine retriever implemented with the Python standard library. This creates a transparent baseline whose ranking can be reproduced and evaluated without a hosted embedding model or vector database.
+
+The trade-off is visible in the published evaluation: lexical overlap can mis-rank ambiguous queries. Semantic embeddings, hybrid retrieval and reranking are future improvements rather than hidden dependencies in the baseline.
+
+## Citation boundary
+
+Retrieved chunks become `EvidenceRecord` objects before generation. The output validator checks that every cited evidence ID exists in the evidence carried by the output. Source locators bind those IDs back to the exact knowledge document and chunk.
+
+This establishes citation traceability. Semantic claim-to-passage entailment is not yet asserted.
 
 ## Evolution
 
-Retrieval, tool calling, expanded escalation logic, and richer observability are deliberately introduced in later releases so each capability can be evaluated independently.
+- **v0.1:** structured prompting and contracts;
+- **v0.2:** reproducible evaluation baseline;
+- **v0.3:** deterministic RAG and citation traceability;
+- **v0.4:** deterministic engineering tool calling;
+- **v0.5:** stronger guardrail and escalation policies;
+- **v0.6:** richer observability and traceability;
+- **v1.0:** integrated demonstration.

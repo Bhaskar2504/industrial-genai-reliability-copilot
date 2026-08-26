@@ -1,0 +1,9 @@
+[
+  {"id":"V03-01","name":"Pump suction restriction retrieval","query":"rising suction strainer differential pressure and lower suction pressure on a centrifugal pump","expected_document":"knowledge/synthetic/pump_suction_restriction.md"},
+  {"id":"V03-02","name":"Sensor disagreement retrieval","query":"one temperature sensor disagrees with peer measurements while the process remains stable","expected_document":"knowledge/synthetic/sensor_disagreement.md"},
+  {"id":"V03-03","name":"Evidence quality retrieval","query":"what data quality checks should be done before diagnosing an unusual plant signal","expected_document":"knowledge/synthetic/evidence_quality.md"},
+  {"id":"V03-04","name":"Bearing vibration retrieval","query":"bearing vibration increased with load and speed","expected_document":"knowledge/synthetic/bearing_vibration.md"},
+  {"id":"V03-05","name":"Boiler oxygen and draft retrieval","query":"flue gas oxygen increased together with draft burden","expected_document":"knowledge/synthetic/boiler_oxygen_draft.md"},
+  {"id":"V03-06","name":"Motor current context retrieval","query":"motor current changed on a driven pump how should it be interpreted","expected_document":"knowledge/synthetic/motor_current_context.md"},
+  {"id":"V03-07","name":"Known limitation: ambiguous pump-current query","query":"current increased while flow changed on a pump","expected_document":"knowledge/synthetic/motor_current_context.md","known_limitation":"The deterministic lexical retriever gives more weight to the pump/flow terms and ranks the pump-suction document above the motor-current context document. This ambiguous query is intentionally retained as a failed retrieval case."}
+]
