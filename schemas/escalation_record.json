@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EscalationRecord",
+  "type": "object",
+  "required": ["required", "priority", "reason", "review_by"],
+  "properties": {
+    "required": {"type": "boolean"},
+    "priority": {"enum": ["routine", "prompt", "urgent"]},
+    "reason": {"type": "string", "minLength": 1},
+    "review_by": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvidenceRecord",
+  "type": "object",
+  "required": ["evidence_id", "source_title", "source_type", "excerpt"],
+  "properties": {
+    "evidence_id": {"type": "string", "minLength": 1},
+    "source_title": {"type": "string", "minLength": 1},
+    "source_type": {"enum": ["synthetic", "public"]},
+    "excerpt": {"type": "string", "minLength": 1},
+    "source_locator": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
