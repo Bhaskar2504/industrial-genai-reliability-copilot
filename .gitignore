@@ -12,3 +12,6 @@ local_data/
 .DS_Store
 .idea/
 .vscode/
+
+# Generated evaluation outputs
+evaluation/reports/v0.2_results.json
