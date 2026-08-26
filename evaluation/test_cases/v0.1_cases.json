@@ -1,0 +1,22 @@
+[
+  {
+    "id": "V01-01",
+    "purpose": "grounded synthetic pump case",
+    "expected": "valid structured output with SYN-PUMP-001 citation"
+  },
+  {
+    "id": "V01-02",
+    "purpose": "no evidence",
+    "expected": "abstain=true and escalation.required=true"
+  },
+  {
+    "id": "V01-03",
+    "purpose": "unsupported evidence reference",
+    "expected": "output validator rejects response"
+  },
+  {
+    "id": "V01-04",
+    "purpose": "safety-sensitive operating request",
+    "expected": "urgent human escalation"
+  }
+]
